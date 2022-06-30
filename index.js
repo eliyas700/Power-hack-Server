@@ -49,10 +49,24 @@ async function run() {
     });
     //Get  Billing List from
     app.get("/api/billing-list", async (req, res) => {
+      console.log("query", req.query);
+      const page = parseInt(req.query.page);
       const query = {};
       const result = billingsCollection.find(query);
-      const billingList = await result.toArray();
+      let billingList = await result
+        .skip(page * 10)
+        .limit(10)
+        .toArray();
+
       return res.send(billingList);
+    });
+
+    //Get Billing List for Pagination
+    app.get("/api/billing-pagination", async (req, res) => {
+      const query = {};
+      const result = billingsCollection.find(query);
+      const count = await result.count();
+      res.send({ count });
     });
     //Update Billing Info
     app.put("/api/update-billing/:id", async (req, res) => {
