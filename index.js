@@ -32,10 +32,50 @@ async function run() {
     await client.connect();
 
     const usersCollection = client.db("power-hack").collection("users_list");
+    const billingsCollection = client
+      .db("power-hack")
+      .collection("billings_list");
     //Get All Users
     app.get("/user", async (req, res) => {
       const users = await usersCollection.find().toArray();
       res.send(users);
+    });
+
+    //Add a Billing to DB
+    app.post("/api/add-billing", async (req, res) => {
+      const bill = req.body;
+      const result = await billingsCollection.insertOne(bill);
+      return res.send(result);
+    });
+    //Get  Billing List from
+    app.get("/api/billing-list", async (req, res) => {
+      const query = {};
+      const result = billingsCollection.find(query);
+      const billingList = await result.toArray();
+      return res.send(billingList);
+    });
+    //Update Billing Info
+    app.put("/api/update-billing/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedBill = req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: updatedBill,
+      };
+      const result = await billingsCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      result.acknowledged
+        ? res
+            .status(200)
+            .send({ success: true, message: "data update successfully" })
+        : res.status(500).send({
+            success: false,
+            error: "Sorry !There's Something Wrong in the Server",
+          });
     });
   } finally {
   }
