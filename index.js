@@ -77,6 +77,21 @@ async function run() {
             error: "Sorry !There's Something Wrong in the Server",
           });
     });
+
+    //Delete a Billing Info
+    app.delete("/api/delete-billing/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await billingsCollection.deleteOne(query);
+      result.acknowledged
+        ? res
+            .status(200)
+            .send({ success: true, message: "Data deleted successfully" })
+        : res.status(500).send({
+            success: false,
+            error: "Sorry !There's Something Wrong in the Server",
+          });
+    });
   } finally {
   }
 }
