@@ -166,7 +166,7 @@ async function run() {
       res.send({ count });
     });
     //Update Billing Info
-    app.put("/api/update-billing/:id", verifyJWT, async (req, res) => {
+    app.put("/api/update-billing/:id", async (req, res) => {
       const id = req.params.id;
       const updatedBill = req.body;
       const filter = { _id: ObjectId(id) };
@@ -190,7 +190,7 @@ async function run() {
     });
 
     //Delete a Billing Info
-    app.delete("/api/delete-billing/:id", verifyJWT, async (req, res) => {
+    app.delete("/api/delete-billing/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await billingsCollection.deleteOne(query);
