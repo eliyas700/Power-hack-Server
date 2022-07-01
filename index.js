@@ -7,6 +7,8 @@ const express = require("express");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 const app = express();
+const jwt = require("jsonwebtoken");
+const { decode } = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 require("dotenv").config();
 
@@ -54,9 +56,11 @@ async function run() {
       const query = {};
       const result = billingsCollection.find(query);
       let billingList = await result
+
         .skip(page * 10)
         .limit(10)
-        .toArray();
+        .toArray()
+        .reverse();
 
       return res.send(billingList);
     });
