@@ -138,7 +138,7 @@ async function run() {
     });
 
     //Add a Billing to DB
-    app.post("/api/add-billing", verifyJWT, async (req, res) => {
+    app.post("/api/add-billing", async (req, res) => {
       const bill = req.body;
       const result = await billingsCollection.insertOne(bill);
       return res.send(result);
