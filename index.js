@@ -24,13 +24,6 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
-// client.connect((err) => {
-//   const collection = client.db("test").collection("devices");
-//   // perform actions on the collection object
-//   client.close();
-// });
-
-//Verify JWT
 
 const verifyJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -107,13 +100,6 @@ async function run() {
 
           //if both match than you can do anything
           if (data) {
-            // const token = jwt.sign(
-            //   { email: user.email },
-            //   process.env.MY_ACCESS_TOKEN
-            // );
-            // console.log(token);
-            // console.log("ok");
-
             return res.status(200).json({ msg: "Login success" });
           } else {
             return res
