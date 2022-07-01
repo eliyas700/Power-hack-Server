@@ -30,6 +30,28 @@ const client = new MongoClient(uri, {
 //   client.close();
 // });
 
+//Verify JWT
+
+const verifyJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ message: "Unauthorized Access!" });
+  }
+  //get the token from Auth header by Spliting
+  const token = authHeader.split(" ")[1];
+  //Verify Token (If it is Correct or not)
+  jwt.verify(token, process.env.MY_ACCESS_TOKEN, function (err, decoded) {
+    if (err) {
+      // if Token is not Correct
+      return res.status(403).send({ message: "Forbidden Access" });
+    }
+    //If token is Right
+    req.decoded = decoded;
+    console.log(decoded); // bar
+    next();
+  });
+};
+
 async function run() {
   try {
     await client.connect();
@@ -85,12 +107,12 @@ async function run() {
 
           //if both match than you can do anything
           if (data) {
-            const token = jwt.sign(
-              { email: user.email },
-              process.env.MY_ACCESS_TOKEN
-            );
-            console.log(token);
-            console.log("ok");
+            // const token = jwt.sign(
+            //   { email: user.email },
+            //   process.env.MY_ACCESS_TOKEN
+            // );
+            // console.log(token);
+            // console.log("ok");
 
             return res.status(200).json({ msg: "Login success" });
           } else {
@@ -102,6 +124,27 @@ async function run() {
       });
     });
 
+    //Check Whether the user Was Previously logged in or Not
+    app.put("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email: email };
+      //If the user is not existed it will add
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await usersCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      const token = jwt.sign({ email: email }, process.env.MY_ACCESS_TOKEN, {
+        expiresIn: "15d",
+      });
+      res.send({ result, token });
+    });
+
     //Get All Users
     app.get("/user", async (req, res) => {
       const users = await usersCollection.find().toArray();
@@ -109,7 +152,7 @@ async function run() {
     });
 
     //Add a Billing to DB
-    app.post("/api/add-billing", async (req, res) => {
+    app.post("/api/add-billing", verifyJWT, async (req, res) => {
       const bill = req.body;
       const result = await billingsCollection.insertOne(bill);
       return res.send(result);
