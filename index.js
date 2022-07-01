@@ -7,6 +7,7 @@ const express = require("express");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 const app = express();
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { decode } = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
@@ -37,6 +38,34 @@ async function run() {
     const billingsCollection = client
       .db("power-hack")
       .collection("billings_list");
+
+    //Register User
+    app.post("/registration", async (req, res) => {
+      const data = req.body;
+      const email = data.email;
+      const userPass = data.password;
+      const userName = data.name;
+      const password = await bcrypt.hash(userPass, 10);
+      const user = await usersCollection.find({}).toArray();
+      let isUser;
+      user.forEach((us) => {
+        if (us.email === email) {
+          return (isUser = true);
+        } else {
+          return (isUser = false);
+        }
+      });
+
+      if (isUser) {
+        console.log(isUser);
+        res.send({ message: "User already Register" });
+      } else {
+        const newUser = { email, password, userName };
+        const result = await usersCollection.insertOne(newUser);
+        res.send(result);
+      }
+    });
+
     //Get All Users
     app.get("/user", async (req, res) => {
       const users = await usersCollection.find().toArray();
@@ -59,8 +88,7 @@ async function run() {
 
         .skip(page * 10)
         .limit(10)
-        .toArray()
-        .reverse();
+        .toArray();
 
       return res.send(billingList);
     });
