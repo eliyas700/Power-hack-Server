@@ -58,12 +58,48 @@ async function run() {
 
       if (isUser) {
         console.log(isUser);
-        res.send({ message: "User already Register" });
+        res.send({ message: "Sorry !User already Register" });
       } else {
         const newUser = { email, password, userName };
         const result = await usersCollection.insertOne(newUser);
         res.send(result);
       }
+    });
+
+    //User LogIn
+    app.post("/login", async (req, res) => {
+      const email = req.body.email;
+      const password = req.body.password;
+      const user = await usersCollection.findOne({ email });
+      //Find User  Existed or Not
+
+      usersCollection.findOne({ email }).then((user) => {
+        //If User Not existed
+        if (!user) return res.status(400).json({ msg: "User not exist" });
+        //if user exist than compare password
+        //password comes from the user
+        //user.password comes from the database
+        bcrypt.compare(password, user.password, (err, data) => {
+          //if error than throw error
+          if (err) throw err;
+
+          //if both match than you can do anything
+          if (data) {
+            const token = jwt.sign(
+              { email: user.email },
+              process.env.MY_ACCESS_TOKEN
+            );
+            console.log(token);
+            console.log("ok");
+
+            return res.status(200).json({ msg: "Login success" });
+          } else {
+            return res
+              .status(401)
+              .json({ msg: "Please, Check Your Email/Password" });
+          }
+        });
+      });
     });
 
     //Get All Users
